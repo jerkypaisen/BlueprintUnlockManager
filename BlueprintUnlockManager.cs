@@ -48,6 +48,28 @@ namespace Oxide.Plugins
             LoadConfigData();
             LoadQueueData();
             RegisterLang();
+
+            // Check blueprint ownership for all online players at plugin initialization
+            foreach (var player in BasePlayer.activePlayerList)
+            {
+                foreach (var item in config.Items)
+                {
+                    var shortName = item.ShortName;
+                    var queue = GetQueue(shortName);
+
+                    ItemDefinition def = ItemManager.FindItemDefinition(shortName);
+                    if (def == null) continue;
+
+                    if (HasPlayerBlueprint(player, def))
+                    {
+                        if (!queue.Contains(player.userID))
+                        {
+                            RemovePlayerBlueprint(player, def);
+                            PrintToChatLang(player, "LostBlueprintQueueEnforcement", shortName);
+                        }
+                    }
+                }
+            }
         }
 
         private void RegisterLang()
